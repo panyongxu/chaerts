@@ -50,7 +50,12 @@
     let links = [],
       nodes = [],
       showTooltipX,
-      showTooltipY;
+      showTooltipY,
+      isClick = false,
+      color = {
+        highlight: 'red',
+        noHighlight: null
+      }
     // 转换数据
     const transformData = (getList) => {
       // 转换links
@@ -65,7 +70,7 @@
           lineStyle: {
             normal: {
               type: 'dotted',
-              color: '#000'
+              color: color.noHighlight
             }
           }
         })
@@ -82,6 +87,11 @@
           des: des,
           isdblclick: false,
           draggable: true,
+          itemStyle: {
+            normal: {
+              color: color.noHighlight
+            }
+          }
         })
       }
     }
@@ -214,6 +224,11 @@
         isdblclick: false,
         name: '李开复' + num++,
         des: '创新工场创始人、知名互联网天使投资人',
+        itemStyle: {
+          normal: {
+            color: color.noHighlight
+          }
+        },
         x: parseInt(Math.random() * 150),
         y: parseInt(Math.random() * 150),
       }
@@ -225,7 +240,7 @@
         lineStyle: {
           normal: {
             type: 'dotted',
-            color: '#000'
+            color: color.noHighlight
           }
         }
       }
@@ -257,15 +272,37 @@
 
     function circleClick(dataIndex) {
       // if (!isHighlight) {
-        myChart.dispatchAction({
-          type: 'focusNodeAdjacency',
-          seriesId: option.series[0].id,
-          dataIndex: dataIndex
-        });
+        // myChart.dispatchAction({
+        //   type: 'focusNodeAdjacency',
+        //   seriesId: option.series[0].id,
+        //   dataIndex: dataIndex
+        // });
 
-        isHighlight = true;
-        clickLastNode = dataIndex;
+        // isHighlight = true;
+        // clickLastNode = dataIndex;
       // }
+      console.log(isClick);
+      
+      if(!isClick) {
+        return false
+      }
+      let style = nodes[dataIndex].itemStyle.normal
+      if(style.color){
+        style.color = color.noHighlight
+      }else {
+        style.color = color.highlight
+      }
+      // nodes.splice(dataIndex,1, {
+      //   ...nodes[dataIndex],
+      // })
+      console.log(nodes[dataIndex]);
+      
+      myChart.setOption({
+        series: [{
+          name: 'Lab',
+          data: nodes,
+        }]
+      });
       updatePosition();
 
     };
@@ -276,8 +313,6 @@
           var tmpPos = myChart.convertToPixel({
             'seriesIndex': 0
           }, [item.x, item.y]);
-          console.log('tmpPos', tmpPos);
-
           return {
             position: tmpPos
           };
@@ -329,14 +364,27 @@
       }
       updatePosition();
     })
-    // 点击空白区域复原
-    // myChart.getZr().on('mousemove', function (params) {
-    //   throttle(()=> {
-    //     let {x, y} = params.event
-    //     showTooltipX = x
-    //     showTooltipX =y
-    //   })
-    // })
+    let x,y
+    // // 点击空白区域复原
+    myChart.getZr().on('mousedown', function (params) {
+      x = params.event.x
+      y = params.event.y
+      console.log('mousedown',x, y);
+  
+    })
+    myChart.getZr().on('mouseup', function (params) {
+      console.log(params.event);
+      
+      let nowx = params.event.x
+      let nowy = params.event.y
+      if(nowx === x && nowy ===y) {
+        isClick = true
+      }else {
+        isClick = false
+      }
+      console.log('mouseup',nowx, nowy);
+  
+    })
   </script>
 </body>
 
