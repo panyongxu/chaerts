@@ -1,247 +1,343 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>ECharts 实现人民的名义关系图谱</title>
-    <script src="jquery-1.10.2.min.js"></script>
-    <script src="echarts.min.js"></script>
-    <style type="text/css">
-        html, body, #main { height: 100%; width: 100%; margin: 0; padding: 0 }
-    </style>
+  <meta charset="UTF-8">
+  <title>ecahrts关系图拖拽</title>
 </head>
+
 <body>
-    <div id="main" ></div>
-    <script type="text/javascript">
-        var myChart = echarts.init(document.getElementById('main'));
-        var symbolSize = 2;
-        var link = [
-                        {
-                            source: '马云',
-                            target: '阿里巴巴',
-                            name: '参股',
-                            des: '公司名:阿里巴巴, 创建时间:1999年 ',
-                            lineStyle: {
-                                normal: {
-                                    type: 'dotted',
-                                    color: '#000'
-                                }
-                            }
-                        }, {
-                            source: '马化腾',
-                            target: '腾讯',
-                            name: '参股',
-                            path: '法人',
-                            des: '公司名:腾讯, 创建时间:1998年 ',
-                            lineStyle: {
-                                normal: {
-                                    type: 'dotted',
-                                    color: '#000'
-                                }
-                            }
-                        }, 
-                        ]
-        var nodes = [
-                        {
-                            name: '马云',
-                            des: '年龄:53, 祖籍:杭州, 身份: 阿里巴巴董事长, 爱好: 太极拳',
-                            itemStyle: {
-                                normal: {
-                                    color: 'red'
-                                }
-                            },
-                            draggable: true
-                        }, 
-                        {
-                            name: '马化腾',
-                            des: '年龄:53, 祖籍:杭州, 身份: 阿里巴巴董事长, 爱好: 太极拳',
-                            itemStyle: {
-                                normal: {
-                                    color: 'red'
-                                }
-                            }
-                        }, 
-                        {
-                            name: '劉強東',
-                            des: '年龄:53, 祖籍:杭州, 身份: 阿里巴巴董事长, 爱好: 太极拳',
-                            itemStyle: {
-                                normal: {
-                                    color: 'red'
-                                }
-                            }
-                        }, 
-                        {
-                            name: '腾讯',
-                            des: '公司名:腾讯, 创建时间:1998年 ',
-                        }, 
-                        {
-                            name: '阿里巴巴',
-                            des: '公司名:阿里巴巴, 创建时间:1999年 ',
-                        }, 
-                    ]
-
-
-            var isHighlight = false,clickLastNode = null;
-            nodes = nodes.map(function(item){
-                item.x = parseInt(Math.random()*650);
-                item.y = parseInt(Math.random()*650);
-                return item;
-            })
-            console.log(nodes);
-            
-        option = {
-            // title: { text: '人民的名义关系图谱' },
-            tooltip: {
-                formatter: function (x) {
-                    return x.data.des;
-                }
-            },
-            series: [
-                {
-                    type: 'graph',
-                    layout: 'none',
-                    symbolSize: 80,
-                    roam: true,
-                    edgeSymbol: ['circle', 'arrow'],
-                    edgeSymbolSize: [4, 10],
-                    edgeLabel: {
-                        normal: {
-                            textStyle: {
-                                fontSize: 20
-                            }
-                        }
-                    },
-                    force: {
-                        initLayout: 'circular',
-                        repulsion: 200,//斥力大小
-                        edgeLength:100, //节点连线长度
-                        layoutAnimation: false,
-                        gravity: 0,
-                    },
-                    draggable: false,
-                    legendHoverLink: false,
-                    animation: false,
-                    hoverAnimation: false,
-                    focusNodeAdjacency: false,
-                    itemStyle: {
-                        normal: {
-                            color: '#4b565b'
-                        }
-                    },
-                    lineStyle: {
-                        normal: {
-                            width: 2,
-                            color: '#4b565b',
-                            // curveness: 0.3
-
-                        }
-                    },
-                    edgeLabel: {
-                        normal: {
-                            show: true,
-                            formatter: function (x) {
-                                return x.data.name;
-                            }
-                        }
-                    },
-                    label: {
-                        normal: {
-                            show: true,
-                            textStyle: {
-                            }
-                        }
-                    },
-                    emphasis: {
-                            lineStyle: {
-                                width: 500
-                            }
-                        },
-                    draggable: true,
-                    data: nodes,
-                    links: link,
-                }
-            ]
-        };
-
-        myChart.setOption(option);
-        
-
-
-
-        upDataTuPu();
-  function upDataTuPu () {
-    myChart.setOption({
-      graphic: echarts.util.map(nodes, function (item, dataIndex) {
-        return {
-          type: 'circle',
-          shape: {
-            r: 15
-          },
-          position: myChart.convertToPixel({seriesIndex: 0}, [item.x,item.y]),
+  <div id="main" style="width:100%;height:800px;"></div>
+  <script src="echarts.min.js"></script>
+  <script type="text/javascript">
+    const getList = {
+      "zhongxin": ["马云", "马化腾"],
+      "shiti": {
+        "马云": {
+          "年龄": "53",
+          "祖籍": "杭州",
+          "身份": "阿里巴巴董事长",
+          "爱好": "太极拳"
+        },
+        "刘强东": {
+          "年龄": "53",
+          "祖籍": "杭州",
+          "身份": "阿里巴巴董事长",
+          "爱好": "太极拳"
+        },
+        "马化腾": {
+          "年龄": "53",
+          "祖籍": "杭州",
+          "身份": "阿里巴巴董事长",
+          "爱好": "太极拳"
+        },
+        "腾讯": {
+          "公司名": "腾讯",
+          "创建时间": "1998年"
+        },
+        "阿里巴巴": {
+          "公司名": "阿里巴巴",
+          "创建时间": "1999年"
+        }
+      },
+      "guanxi": {
+        "马云&&阿里巴巴": "参股",
+        "马化腾&&腾讯": "参股"
+      }
+    }
+    var isHighlight = false,
+      clickLastNode = null;
+    let links = [],
+      nodes = [],
+      showTooltipX,
+      showTooltipY;
+    // 转换数据
+    const transformData = (getList) => {
+      // 转换links
+      for (let link in getList['guanxi']) {
+        const [source, target] = link.split('&&')
+        console.log(source, target);
+        links.push({
+          source: source,
+          target: target,
+          name: getList['guanxi'][link],
+          des: getList['guanxi'][link],
+          lineStyle: {
+            normal: {
+              type: 'dotted',
+              color: '#000'
+            }
+          }
+        })
+      }
+      // 转换nodes
+      for (let node in getList['shiti']) {
+        let des = ''
+        const value = getList['shiti'][node]
+        for (let key in value) {
+          des += `${key}:${value[key]},`
+        }
+        nodes.push({
+          name: node,
+          des: des,
+          isdblclick: false,
           draggable: true,
-          invisible: true,
-          onclick: echarts.util.curry(circleClick,dataIndex),
-          ondrag: echarts.util.curry(onPointDragging, dataIndex),
-          z: 100,
-        };
+        })
+      }
+    }
+    transformData(getList)
+
+    const nodesMap = (nodes) => {
+      nodes = nodes.map(function (item, index) {
+        item.x = parseInt(Math.random() * 150);
+        item.y = parseInt(Math.random() * 150);
+
+        return item;
       })
-    });
-  };
-  myChart.on('graphRoam', function () {
-    updatePosition();
-    rememberHighlight(clickLastNode);
-  });
-  function onPointDragging(dataIndex) {
-    var tmpPos = myChart.convertFromPixel({seriesIndex: 0}, this.position);
-    nodes[dataIndex].x = tmpPos[0];
-    nodes[dataIndex].y = tmpPos[1];
-    myChart.setOption({
+    }
+    nodesMap(nodes)
+    var option = {
+      tooltip: {
+        position: 'top',
+        formatter: function (x) {
+          return x.data.des;
+        }
+      },
       series: [{
         id: 'a',
-        data: nodes
+        name: 'Lab',
+        type: 'graph',
+        layout: 'none',
+        hoverAnimation: true,
+        force: {
+          initLayout: 'circular',
+          //   repulsion: 500,//斥力大小
+          edgeLength: 10, //节点连线长度
+          layoutAnimation: false,
+          gravity: 0,
+        },
+        data: nodes,
+        links: links,
+        roam: true,
+        draggable: false,
+        symbolSize: 60,
+        // focusNodeAdjacency: false,
+        label: {
+          normal: {
+            show: true,
+            // position: 'bottom',
+            // color: '#000'
+          }
+        },
+        lineStyle: { // 线的颜色
+          normal: {
+            color: 'source',
+          }
+        },
+        edgeLabel: { // 标签的位置，就是线上面的文字
+          normal: {
+            show: true,
+            color: '#000',
+            formatter: function (e) {
+              return e.data.name
+            },
+          }
+        },
+        edgeSymbol: ['', 'arrow'],
+        animation: false,
+        animationEasingUpdate: false
       }]
+    };
+    var myChart = echarts.init(document.getElementById('main'));
+
+    myChart.setOption(option);
+
+
+    upDataTuPu();
+
+    function upDataTuPu() {
+      myChart.setOption({
+        graphic: echarts.util.map(nodes, function (item, dataIndex) {
+          return {
+            type: 'circle',
+            shape: {
+              r: 30
+            },
+            draggable: true,
+            invisible: true,
+            // 在 mouseover 的时候显示，在 mouseout 的时候隐藏。
+            onmousemove: echarts.util.curry(throttle(showTooltip), dataIndex),
+            onmouseout: echarts.util.curry(hideTooltip, dataIndex),
+            onclick: echarts.util.curry(circleClick, dataIndex),
+            ondrag: echarts.util.curry(onPointDragging, dataIndex),
+            ondblclick: echarts.util.curry(circleDblclick, dataIndex),
+            z: 100,
+          };
+        })
+      });
+    };
+    myChart.on('graphRoam', function () {
+      updatePosition();
+      rememberHighlight(clickLastNode);
     });
-    updatePosition();
-    rememberHighlight(clickLastNode);
- 
-  }
-  function circleClick(dataIndex) {
-    if(!isHighlight){
+
+    function onPointDragging(dataIndex) {
+      var tmpPos = myChart.convertFromPixel({
+        seriesIndex: 0
+      }, this.position);
+      nodes[dataIndex].x = tmpPos[0];
+      nodes[dataIndex].y = tmpPos[1];
+      myChart.setOption({
+        series: [{
+          id: 'a',
+          data: nodes
+        }]
+      });
+      updatePosition();
+      rememberHighlight(clickLastNode);
+
+    }
+    let num = 1
+
+    // 双击插入数据
+    function circleDblclick(dataIndex) {
+      let isdblclick = nodes[dataIndex].isdblclick
+      if(isdblclick) {
+        alert('已被点击过')
+        return false
+      }
+      const oldNodes = JSON.parse(JSON.stringify(nodes))
+      const oldLinks = JSON.parse(JSON.stringify(links))
+
+      // 插入数据格式
+      let item = {
+        isdblclick: false,
+        name: '李开复' + num++,
+        des: '创新工场创始人、知名互联网天使投资人',
+        x: parseInt(Math.random() * 150),
+        y: parseInt(Math.random() * 150),
+      }
+      let link = {
+        source: '马云',
+        target: '李开复' + num,
+        name: '参股',
+        des: '公司名:阿里巴巴, 创建时间:1999年',
+        lineStyle: {
+          normal: {
+            type: 'dotted',
+            color: '#000'
+          }
+        }
+      }
+
+
+      // 查重
+      const isDuplicate = nodes.find(x => x.name === item.name)
+      if (isDuplicate) return false
+      oldNodes.splice(dataIndex,1,{
+        ...nodes[dataIndex],
+        isdblclick:true
+      })
+      oldNodes.push(item)
+      oldLinks.push(link)
+      // console.log(oldNodes);
+
+      nodes = oldNodes
+      links = oldLinks
+      myChart.setOption({
+        series: [{
+          name: 'Lab',
+          data: nodes,
+          links: links,
+        }]
+      });
+      upDataTuPu()
+      updatePosition();
+    }
+
+    function circleClick(dataIndex) {
+      // if (!isHighlight) {
+        myChart.dispatchAction({
+          type: 'focusNodeAdjacency',
+          seriesId: option.series[0].id,
+          dataIndex: dataIndex
+        });
+
+        isHighlight = true;
+        clickLastNode = dataIndex;
+      // }
+      updatePosition();
+
+    };
+
+    function updatePosition() { //更新节点定位的函数
+      myChart.setOption({
+        graphic: echarts.util.map(nodes, function (item, dataIndex) {
+          var tmpPos = myChart.convertToPixel({
+            'seriesIndex': 0
+          }, [item.x, item.y]);
+          console.log('tmpPos', tmpPos);
+
+          return {
+            position: tmpPos
+          };
+        })
+      });
+
+    };
+
+    function throttle(method) {
+      var timer = null;
+      return function () {
+        var context = this,
+          args = arguments;
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          method.apply(context, args);
+        }, 300);
+      }
+    }
+
+    function showTooltip(dataIndex) {
+      myChart.dispatchAction({
+        type: 'showTip',
+        seriesIndex: 0,
+        dataIndex: dataIndex,
+      });
+    }
+
+    function hideTooltip(dataIndex) {
+      myChart.dispatchAction({
+        type: 'hideTip'
+      });
+    }
+
+    function rememberHighlight(clickLastNode) {
       myChart.dispatchAction({
         type: 'focusNodeAdjacency',
         seriesId: option.series[0].id,
-        dataIndex: dataIndex
+        dataIndex: clickLastNode
       });
-      isHighlight = true;
-      clickLastNode = dataIndex;
     }
-  };
-  function updatePosition() {    //更新节点定位的函数
-    myChart.setOption({
-      graphic: echarts.util.map(nodes, function (item, dataIndex) {
-        var tmpPos=myChart.convertToPixel({'seriesIndex': 0},[item.x,item.y]);
-        return {
-          position: tmpPos
-        };
-      })
-    });
- 
-  };
-  function rememberHighlight(clickLastNode){
-    myChart.dispatchAction({
-      type: 'focusNodeAdjacency',
-      seriesId: option.series[0].id,
-      dataIndex: clickLastNode
-    });
-  }
-  // 点击空白区域复原
-  myChart.getZr().on('click',function (params) {
-    console.log('params',params);
-    if(params.cancelBubble === false && params.target === undefined){
+    // // 点击空白区域复原
+    myChart.getZr().on('click', function (params) {
+      console.log('params', params);
+      if (params.cancelBubble === false && params.target === undefined) {
+        updatePosition();
+        isHighlight = false;
+        clickLastNode = null;
+      }
       updatePosition();
-      isHighlight = false;
-      clickLastNode = null;
-    }
-  })
-    </script>
+    })
+    // 点击空白区域复原
+    // myChart.getZr().on('mousemove', function (params) {
+    //   throttle(()=> {
+    //     let {x, y} = params.event
+    //     showTooltipX = x
+    //     showTooltipX =y
+    //   })
+    // })
+  </script>
 </body>
+
 </html>
