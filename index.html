@@ -54,9 +54,11 @@
       clickLastNode = null;
     let links = [],
       nodes = [],
-      size = 4,
+      [sizeX,sizeY ]= mainSize(),
+      // [sizeX,sizeY ]= [1000, 800],
       showTooltipX,
       showTooltipY,
+      timer = null,
       isClick = false,
       ckeckLinkS= [],
       color = {
@@ -106,9 +108,9 @@
 
     const nodesMap = (nodes) => {
       nodes = nodes.map(function (item, index) {
-        item.x = parseInt(Math.random() * size);
-        item.y = parseInt(Math.random() * size);
-
+        item.x = parseInt(Math.random() * sizeX);
+        item.y = parseInt(Math.random() * sizeY);
+        
         return item;
       })
     }
@@ -219,6 +221,7 @@
 
     // 双击插入数据
     function circleDblclick(dataIndex) {
+      clearTimeout(timer); 
       let isdblclick = nodes[dataIndex].isdblclick
       if(isdblclick) {
         alert('已被点击过')
@@ -226,32 +229,32 @@
       }
       const oldNodes = JSON.parse(JSON.stringify(nodes))
       const oldLinks = JSON.parse(JSON.stringify(links))
-
+      const thisName = '李开复' + num++
       // 插入数据格式
       let item = {
         isdblclick: false,
-        name: '李开复' + num++,
+        name: thisName,
         des: '创新工场创始人、知名互联网天使投资人',
+        previousIndex: dataIndex,
         itemStyle: {
           normal: {
-            color: color.noHighlight
+            color: color.highlight
           }
         },
-        x: parseInt(Math.random() * size),
-        y: parseInt(Math.random() * size),
+        x: parseInt(Math.random() * sizeX),
+        y: parseInt(Math.random() * sizeY),
       }
       let link = {
-        source: '马云',
-        target: '李开复' + num,
+        source: nodes[dataIndex].name,
+        target: thisName,
         name: '参股',
         des: '公司名:阿里巴巴, 创建时间:1999年',
         lineStyle: {
           normal: {
-            color: color.noHighlight
+            color: color.highlight
           }
         }
       }
-
 
       // 查重
       const isDuplicate = nodes.find(x => x.name === item.name)
@@ -262,9 +265,25 @@
       })
       oldNodes.push(item)
       oldLinks.push(link)
-
       nodes = oldNodes
       links = oldLinks
+      const name = ckeckLinkS.some( x => x === nodes[dataIndex].name)
+      if(!ckeckLinkS || !name) {
+        ckeckLinkS.push(nodes[dataIndex].name)
+      }else  {
+        const index =  ckeckLinkS.findIndex(x => x === nodes[dataIndex].name)
+        ckeckLinkS.splice(index, 1)
+      }
+      nodes[dataIndex].itemStyle.normal.color =  color.highlight
+      // links.some(link => {
+      //   if(ckeckLinkS.find(x => x === link.source) && ckeckLinkS.find(x => x === link.target)) {
+      //     link.lineStyle.normal.color = color.highlight
+      //   }else {
+      //     link.lineStyle.normal.color = color.noHighlight
+      //   }
+      // })
+      console.log('links2',links)
+      console.log('nodes',nodes)
       myChart.setOption({
         series: [{
           name: 'Lab',
@@ -277,7 +296,10 @@
     }
 
     function circleClick(dataIndex) {   
-      if(!isClick) {
+     
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        if(!isClick) {
         return false
       }
       let style = nodes[dataIndex].itemStyle.normal
@@ -286,28 +308,25 @@
       }else {
         style.color = color.highlight
       }
-      
-
-      const name = ckeckLinkS.some( x => x === nodes[dataIndex].name)
-      if(!ckeckLinkS || !name) {
-        ckeckLinkS.push(nodes[dataIndex].name)
-      }else  {
-        const index =  ckeckLinkS.findIndex(x => x === nodes[dataIndex].name)
-        ckeckLinkS.splice(index, 1)
-      }
-      links.some(link => {
-        if(ckeckLinkS.find(x => x === link.source) && ckeckLinkS.find(x => x === link.target)) {
+      const filterLink = links.filter(link => {
+        return (link.target == nodes[dataIndex].name || link.source == nodes[dataIndex].name)
+      })
+      filterLink.forEach(link => {
+        
+        let node = nodes.filter(node => node.name === link.target )[0]
+        let oldNode = JSON.parse(JSON.stringify(node))
+        if(oldNode.name == nodes[dataIndex].name ) {
+          oldNode = nodes.filter(node => node.name === link.source )[0]
+        }
+        const itemStyleColor = {...oldNode.itemStyle.normal}
+        if(nodes[dataIndex].itemStyle.normal.color == color.highlight && itemStyleColor.color == color.highlight){
           link.lineStyle.normal.color = color.highlight
         }else {
           link.lineStyle.normal.color = color.noHighlight
         }
       })
-      console.log('ckeckLinkS',ckeckLinkS);
-      
-
-
-
-
+      let previous, present,  next // 上中下节点
+      present =  nodes[dataIndex],
       myChart.setOption({
         series: [{
           name: 'Lab',
@@ -316,6 +335,8 @@
         }]
       });
       updatePosition();
+      },300)
+
 
     };
 
@@ -397,6 +418,15 @@
       console.log('mouseup',nowx, nowy);
   
     })
+    function mainSize() {
+      let x = document.body.clientWidth,
+          y = document.body.clientHeight;
+
+          let sizeX = (x - 400) / 200,
+              sizeY = (y - 500) / 200
+      
+      return [sizeX,sizeY]
+    }
   </script>
 </body>
 
