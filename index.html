@@ -5,9 +5,14 @@
   <meta charset="UTF-8">
   <title>ecahrts关系图拖拽</title>
 </head>
-
+<style>
+  html,body,main {
+    width: 100%;
+    height: 100%;
+  }
+</style>
 <body>
-  <div id="main" style="width:100%;height:800px;"></div>
+  <div id="main" style="width:100%;height:100%;"></div>
   <script src="echarts.min.js"></script>
   <script type="text/javascript">
     const getList = {
@@ -49,11 +54,13 @@
       clickLastNode = null;
     let links = [],
       nodes = [],
+      size = 4,
       showTooltipX,
       showTooltipY,
       isClick = false,
+      ckeckLinkS= [],
       color = {
-        highlight: 'red',
+        highlight: 'blue',
         noHighlight: null
       }
     // 转换数据
@@ -69,7 +76,7 @@
           des: getList['guanxi'][link],
           lineStyle: {
             normal: {
-              type: 'dotted',
+              // type: 'dotted',
               color: color.noHighlight
             }
           }
@@ -99,8 +106,8 @@
 
     const nodesMap = (nodes) => {
       nodes = nodes.map(function (item, index) {
-        item.x = parseInt(Math.random() * 150);
-        item.y = parseInt(Math.random() * 150);
+        item.x = parseInt(Math.random() * size);
+        item.y = parseInt(Math.random() * size);
 
         return item;
       })
@@ -117,12 +124,13 @@
         id: 'a',
         name: 'Lab',
         type: 'graph',
+        circular:{rotateLabel:true},
         layout: 'none',
         hoverAnimation: true,
         force: {
           initLayout: 'circular',
           //   repulsion: 500,//斥力大小
-          edgeLength: 10, //节点连线长度
+          edgeLength: 5, //节点连线长度
           layoutAnimation: false,
           gravity: 0,
         },
@@ -130,7 +138,7 @@
         links: links,
         roam: true,
         draggable: false,
-        symbolSize: 60,
+        symbolSize: 50,
         // focusNodeAdjacency: false,
         label: {
           normal: {
@@ -141,7 +149,7 @@
         },
         lineStyle: { // 线的颜色
           normal: {
-            color: 'source',
+            // color: 'source',
           }
         },
         edgeLabel: { // 标签的位置，就是线上面的文字
@@ -171,7 +179,7 @@
           return {
             type: 'circle',
             shape: {
-              r: 30
+              r: 25
             },
             draggable: true,
             invisible: true,
@@ -229,8 +237,8 @@
             color: color.noHighlight
           }
         },
-        x: parseInt(Math.random() * 150),
-        y: parseInt(Math.random() * 150),
+        x: parseInt(Math.random() * size),
+        y: parseInt(Math.random() * size),
       }
       let link = {
         source: '马云',
@@ -239,7 +247,6 @@
         des: '公司名:阿里巴巴, 创建时间:1999年',
         lineStyle: {
           normal: {
-            type: 'dotted',
             color: color.noHighlight
           }
         }
@@ -255,7 +262,6 @@
       })
       oldNodes.push(item)
       oldLinks.push(link)
-      // console.log(oldNodes);
 
       nodes = oldNodes
       links = oldLinks
@@ -270,19 +276,7 @@
       updatePosition();
     }
 
-    function circleClick(dataIndex) {
-      // if (!isHighlight) {
-        // myChart.dispatchAction({
-        //   type: 'focusNodeAdjacency',
-        //   seriesId: option.series[0].id,
-        //   dataIndex: dataIndex
-        // });
-
-        // isHighlight = true;
-        // clickLastNode = dataIndex;
-      // }
-      console.log(isClick);
-      
+    function circleClick(dataIndex) {   
       if(!isClick) {
         return false
       }
@@ -292,15 +286,33 @@
       }else {
         style.color = color.highlight
       }
-      // nodes.splice(dataIndex,1, {
-      //   ...nodes[dataIndex],
-      // })
-      console.log(nodes[dataIndex]);
       
+
+      const name = ckeckLinkS.some( x => x === nodes[dataIndex].name)
+      if(!ckeckLinkS || !name) {
+        ckeckLinkS.push(nodes[dataIndex].name)
+      }else  {
+        const index =  ckeckLinkS.findIndex(x => x === nodes[dataIndex].name)
+        ckeckLinkS.splice(index, 1)
+      }
+      links.some(link => {
+        if(ckeckLinkS.find(x => x === link.source) && ckeckLinkS.find(x => x === link.target)) {
+          link.lineStyle.normal.color = color.highlight
+        }else {
+          link.lineStyle.normal.color = color.noHighlight
+        }
+      })
+      console.log('ckeckLinkS',ckeckLinkS);
+      
+
+
+
+
       myChart.setOption({
         series: [{
           name: 'Lab',
           data: nodes,
+          links: links
         }]
       });
       updatePosition();
