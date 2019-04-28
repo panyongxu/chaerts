@@ -276,14 +276,29 @@
       }
       nodes[dataIndex].itemStyle.normal.color =  color.highlight
       // 上一根线
-      let proLink = links.forEach((link,index) => {
+      links.forEach((link,index) => {
         if(link.target == nodes[dataIndex].name) {
-          console.log('link',link);
           link.lineStyle.normal.color = color.highlight
           links.splice(index,1,link)
           // 一个节点
           nodes.forEach((node,idx) => {
             if(node.name == link.source ) {
+              node.itemStyle.normal.color =  color.highlight
+              nodes.splice(idx,1,node)
+            }
+          })
+          
+        }
+      })
+      // 下一根线
+      links.forEach((link,index) => {
+        if(link.source == nodes[dataIndex].name) {
+          console.log('link',link);
+          link.lineStyle.normal.color = color.highlight
+          links.splice(index,1,link)
+          // 一个节点
+          nodes.forEach((node,idx) => {
+            if(node.name == link.target ) {
               node.itemStyle.normal.color =  color.highlight
               nodes.splice(idx,1,node)
               console.log('node',node);
